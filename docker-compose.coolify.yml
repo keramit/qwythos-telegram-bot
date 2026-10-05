@@ -1,0 +1,57 @@
+# ==========================================================================
+# QWYTHOS Telegram Bot — Coolify deployment (Docker Compose)
+# ==========================================================================
+# Coolify reads this file when you deploy a "Docker Compose" resource.
+#
+# Two ways to use it:
+#   A) Push this repo to GitHub → Coolify "Public/Private Repository" →
+#      Build Pack = Docker Compose → it finds this file automatically.
+#   B) Paste the compose inline in Coolify's "Docker Compose" resource editor.
+#
+# Env vars are set in Coolify UI → Environment Variables (NOT in this file).
+# See coolify-deploy/COOLIFY-STEP-BY-STEP.md
+# ==========================================================================
+
+services:
+  qwythos-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qwythos-bot:latest
+    container_name: qwythos-bot
+    restart: unless-stopped
+
+    # Webhook mode: Telegram pushes updates to this container.
+    # Coolify's Traefik proxy routes the public domain → port 8080.
+    expose:
+      - "8080"
+    # For local testing only (uncomment): maps to host
+    # ports:
+    #   - "8080:8080"
+
+    environment:
+      # --- required (set in Coolify UI, never commit real values) ---
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+      GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY}
+      # Public https URL of this service, e.g. https://bot.example.com
+      # Coolify sets SERVICE_FQDN_<name> automatically; override manually if needed.
+      WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL:?set WEBHOOK_BASE_URL}
+      # Random secret; Telegram signs every webhook POST with it.
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      PORT: "8080"
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=5).status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    # Optional: persist the bot's SQLite memory across redeploys.
+    # Create a Coolify "Persistent Storage" volume mapped to /app/data,
+    # then set MEMORY_DB=/app/data/memory.db in the environment.
+    # volumes:
+    #   - qwythos-data:/app/data
+
+# volumes:
+#   qwythos-data:

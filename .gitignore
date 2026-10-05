@@ -1,9 +1,16 @@
 __pycache__/
 *.pyc
+*.pyo
 .env
+.env.local
 *.log
 *.pid
 /tmp/
 .DS_Store
 venv/
-.env.local
+.venv/
+bot.py
+memory.db
+data/
+*.sqlite
+*.sqlite3

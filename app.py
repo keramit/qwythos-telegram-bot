@@ -523,7 +523,13 @@ async def handle_tiktok_links(update: Update, context: ContextTypes.DEFAULT_TYPE
 def save_to_memory(user_msg: str, reply: str):
     """حفظ المحادثة في SQLite"""
     import sqlite3, datetime
-    db_path = "/Users/ahmedabushama/qwythos-telegram-bot/memory.db"
+    # Portable path: works locally (repo dir) and in Docker (/app).
+    # Override with MEMORY_DB when using a persistent volume.
+    db_path = os.environ.get(
+        "MEMORY_DB",
+        str(Path(__file__).resolve().parent / "memory.db"),
+    )
+    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS chats (
