@@ -1,4 +1,4 @@
-FROM mirror.gcr.io/library/python:3.11-slim
+FROM python:3.11-slim
 
 # Tesseract with Arabic language data — needed for the bot's Arabic OCR.
 RUN apt-get update && apt-get install -y --no-install-recommends \
