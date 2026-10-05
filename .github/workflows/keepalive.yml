@@ -1,0 +1,30 @@
+name: Keep QWYTHOS bot awake
+
+# Render's free tier spins a web service down after 15 minutes without
+# INBOUND traffic. This workflow pings the health endpoint every 10 minutes
+# so the service never idles long enough to sleep.
+#
+# Set the repo variable BOT_URL to your Render URL
+# (Settings → Secrets and variables → Actions → Variables → BOT_URL).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:          # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          URL="${{ vars.BOT_URL }}/healthz"
+          echo "Pinging $URL"
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$URL")
+          echo "HTTP $code"
+          # 200 = awake; 502/503 = cold start in progress (still counts as
+          # inbound traffic, which is what wakes it)
+          case "$code" in
+            200|301|302|502|503) exit 0 ;;
+            *) echo "Unexpected status"; exit 1 ;;
+          esac

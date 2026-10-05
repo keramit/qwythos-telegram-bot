@@ -1,0 +1,10 @@
+python-telegram-bot[webhooks]>=21.0
+httpx>=0.27
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pdf2text-arabic
+pytesseract
+Pillow
+pymupdf
+yt-dlp
+PyYAML
